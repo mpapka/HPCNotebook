@@ -120,18 +120,33 @@ labs teach, projects apply.
 
 ## The runtime these labs target
 
-The primary cluster is **ALCF Polaris** (PBS Pro, NVIDIA A100 GPUs). Labs use the SAME
-notebook cells on any Slurm cluster (Crux, UIC ACER Extreme) because `labHelpers.py`
-probes the remote scheduler and picks `qsub` or `sbatch` automatically. Where a syntax
-difference matters — job scripts, `PBS_*` vs `SLURM_*` env vars — the notebook shows the
-PBS version and includes a **🔀 On a Slurm system** callout with the equivalent.
+The primary cluster is **ALCF Crux** (PBS Pro, CPU-only — HPE Cray EX with AMD EPYC).
+Labs 00-07 run entirely on Crux. Labs **08-10 switch to Polaris** (also PBS Pro, NVIDIA
+A100 GPUs) — that is where GPU work happens. Labs 11-13 return to Crux for scaling
+studies, libraries, and parallel I/O.
 
-- **Compute goes through the scheduler** — the login node is for editing and submitting,
-  never for running. `labHelpers.sshRun` targets the login node; `submitJob` puts the
-  actual work on compute.
-- **Filesystem seam** — home is small and slow, `$HPC_SCRATCH` is big and fast; every
-  lab writes into `$HPC_SCRATCH/<labName>/` and pulls only the small stuff (CSVs,
-  final figures) back to the Hub via `sshGet`.
+The switch between clusters is one line in each lab's `setupLab()` call
+(`host='crux'` vs `host='polaris'`). Everything else — the ssh multiplexing you set up
+in lab00, the scratch pattern under `/eagle/UIC-CS455-Sp2027/<user>/`, the `submitJob`
+/ `waitJob` / `sshGet` workflow — is identical on both.
+
+Labs use the SAME notebook cells on any Slurm cluster (UIC ACER Extreme, other
+university clusters) because `labHelpers.py` probes the remote scheduler and picks
+`qsub` or `sbatch` automatically. Where a syntax difference matters — job scripts,
+`PBS_*` vs `SLURM_*` env vars — the notebook shows the PBS version and includes a
+**🔀 On a Slurm system** callout with the equivalent.
+
+- **Compute goes through the scheduler** — the login node is for editing and
+  submitting, never for running. `labHelpers.sshRun` targets the login node;
+  `submitJob` puts the actual work on compute.
+- **Filesystem seam** — home is small and slow, `/eagle/UIC-CS455-Sp2027/<user>/` is
+  big and fast; every lab writes into `$HPC_SCRATCH/<labName>/` and pulls only the
+  small stuff (CSVs, final figures) back to the Hub via `sshGet`. Every job script
+  **must** include `#PBS -l filesystems=home:eagle` — the scheduler rejects jobs
+  that don't declare filesystems up front.
+- **Authentication** — ALCF uses **MobilePASS+**. Lab 00 sets up ssh connection
+  multiplexing so students prompt for a passcode once every ~8 hours, not on every
+  cell. Every later lab assumes that channel is up.
 - **Visualization** — small runs render on the Hub (matplotlib in the notebook, so
   students see the code); big runs render on the compute node and we scp the PNGs
   back. `renderField(mode='auto')` picks based on size and explains which mode it

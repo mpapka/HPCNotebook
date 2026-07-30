@@ -216,7 +216,7 @@ def clusterHost():
     setupLab() sets HPC_HOST; every lab cell reads it here so 'the cluster'
     is a single knob and changing it does not touch any lab.
     """
-    return os.environ.get("HPC_HOST", "polaris")
+    return os.environ.get("HPC_HOST", "crux")
 
 
 def sshRun(command, host=None, timeoutSeconds=120, quiet=False):
@@ -366,7 +366,7 @@ def qstatTable(user=None, host=None):
 # Lab setup - identity, cluster host, labEnv.sh
 # --------------------------------------------------------------------------
 
-def setupLab(labName, host="polaris", remoteUser=None, project=None,
+def setupLab(labName, host="crux", remoteUser=None, project="UIC-CS455-Sp2027",
              queue=None, scratch=None, extraEnv=None):
     """Set up this lab's identity and write labEnv.sh.
 
