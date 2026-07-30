@@ -4,7 +4,8 @@ Hands-on lab series for **CS 455 — Introduction to High Performance Computing*
 Each lab is a Jupyter notebook that teaches a slice of the HPC stack — logging in, batch
 scheduling, serial baselines, OpenMP, MPI, hybrid parallelism, GPUs, scaling studies,
 libraries, and parallel I/O — by having students *build and run real code on a real
-supercomputer* (Polaris primary; Slurm callouts throughout for Crux and other sites).
+supercomputer* (**ALCF Crux** primary, **ALCF Polaris** for the GPU labs, Slurm callouts
+throughout for other sites).
 
 ## How students use it
 
@@ -18,7 +19,7 @@ ever have the notebooks that have been released.
 The Hub is **not on the cluster**. Every compute cell drives the cluster over `ssh` /
 `scp` (via `sshRun`, `sshPut`, `sshGet`, `submitJob`, `waitJob` in `labHelpers.py`),
 using the student's own passwordless key set up in **lab00**. The notebook is the driver;
-the work runs on Polaris.
+the work runs on Crux (or Polaris, for the GPU labs).
 
 Students sign in to the Hub with an instructor-issued account and password (they don't
 clone, push, or manage credentials themselves).
@@ -70,14 +71,14 @@ produces a number that plugs into a class-wide scaling leaderboard.
 
 | Wk | Lab | Focus |
 |---|---|---|
-| 1 | `lab00GettingOnTheMachine` | Accounts, ssh keys, `module`, filesystems, first `qsub` on Polaris |
+| 1 | `lab00GettingOnTheMachine` | Accounts, ssh (MobilePASS+ multiplexed), `module`, filesystems, first `qsub` on Crux |
 | 2 | `lab01SerialBaseline` | 2-D heat stencil in serial C — the "before" number every later lab beats |
 | 3 | `lab02PerformanceMeasurement` | Wall vs CPU time, `perf stat`, roofline intuition, why one number lies |
 | 4 | `lab03OpenMPFundamentals` | `#pragma omp parallel for`, reductions, first speedup on the baseline |
 | 5 | `lab04OpenMPPitfalls` | False sharing, load imbalance, thread affinity, NUMA |
 | 6 | `lab05MPIFundamentals` | `MPI_Init`, point-to-point, collectives, first multi-node job |
 | 7 | `lab06MPIDomainDecomposition` | Split the stencil across ranks, halo exchange, verify before speed |
-| 8 | `lab07HybridMPIOpenMP` | Ranks-per-node × threads-per-rank sweep on Polaris |
+| 8 | `lab07HybridMPIOpenMP` | Ranks-per-node × threads-per-rank sweep on Crux |
 | 9 | `lab08GPUIntro` | OpenMP `target` offload — port one kernel from lab06 |
 | 10 | `lab09GPUOptimization` | CUDA, memory hierarchy, coalescing, occupancy, streams |
 | 11 | `lab10MultiGPUOneNode` | 4-GPU Polaris node via MPI+CUDA |

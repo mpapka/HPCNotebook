@@ -1,2 +1,92 @@
-*.agdai
-**/MAlonzo/**
+# ============================================================================
+# HPCNotebook — CS 455 lab series
+# ============================================================================
+
+# -- Jupyter --------------------------------------------------------
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+.jupyter/
+.local/
+
+# Notebook outputs: students' local runs shouldn't be committed. The instructor
+# ships notebooks with cleared outputs; each student's kernel re-produces them.
+# (If you WANT to commit rendered outputs for a demo, force-add the file.)
+
+# -- Python ---------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+
+# venvs (labCC creates 'classicenv' and 'uv' projects; keep them out of git)
+.venv/
+venv/
+env/
+classicenv/
+.uv/
+uv.lock
+
+# -- Lab-generated artifacts ----------------------------------------
+# Every lab writes into ~/<labName>/ on the Hub and $HPC_SCRATCH/<labName>/
+# on the cluster. Some students may accidentally clone this repo into a lab
+# folder or symlink outputs into the tree — ignore the whole shape.
+lab*/outputs/
+lab*/figures/
+lab*/*.out
+lab*/*.err
+lab*/*.o[0-9]*
+lab*/*.e[0-9]*
+lab*/*.pbs.o[0-9]*
+lab*/labEnv.sh
+lab*/hello
+lab*/*.exe
+
+# -- Compiled C/C++/CUDA/Fortran ------------------------------------
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.mod
+
+# -- Data / rendered media ------------------------------------------
+*.csv
+*.jsonl
+*.h5
+*.hdf5
+*.nc
+*.npy
+*.npz
+*.mp4
+*.gif
+*.png
+*.pdf
+# ... but DO keep repo-level documentation figures if we add any later:
+!README*.png
+!docs/**/*.png
+!docs/**/*.pdf
+
+# -- OS / editor cruft ----------------------------------------------
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# -- Secrets --------------------------------------------------------
+# Never commit anything that looks like credentials.
+.env
+.envrc
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+authorized_keys
+known_hosts
