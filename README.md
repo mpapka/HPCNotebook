@@ -96,8 +96,10 @@ because every lab from lab01 on relies on its plotting primitives.
 
 - **AA** `labAALinuxAndSSH` — shell basics, ssh keys, first cluster login
 - **BB** `labBBCToolchain` — `gcc` / `clang`, `make`, `gdb`, useful flags, first-hour C hygiene
-- **CC** `labCCNumericsForHPC` — floats vs doubles, ULPs, `-ffast-math` traps
-  (short — prevents "my parallel version gives different answers!" panic in lab06)
+- **CC** `labCCNumericsForHPC` — floats vs doubles, ULPs, catastrophic cancellation,
+  `-ffast-math` traps, timer resolution, reduction-order reproducibility. Strongly
+  recommended before lab 02 (which builds on Part 4 and Part 5). Runs entirely on
+  the Hub — no cluster round-trips.
 - **DD** `labDDAnalysisAndPlotting` — pandas + matplotlib to turn any lab's `.csv`
   outputs into speedup / efficiency / roofline plots; uses `renderField` and
   `plotScaling` from `labHelpers.py`
