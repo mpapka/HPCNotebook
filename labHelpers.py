@@ -300,11 +300,11 @@ def submitJob(scriptPath, host=None, extraArgs=None, timeoutSeconds=30):
     return match.group(1) if match else out.strip()
 
 
-def jobStatus(jobId, host=None):
+def jobStatus(jobID, host=None):
     """Return one of: 'queued', 'running', 'done', 'unknown'."""
     kind = scheduler(host)
     if kind == "pbs":
-        out, code = sshRun(f"qstat -x {jobId} 2>/dev/null | tail -n +3",
+        out, code = sshRun(f"qstat -x {jobID} 2>/dev/null | tail -n +3",
                            host=host, timeoutSeconds=15, quiet=True)
         if code != 0 or not out.strip():
             return "unknown"
@@ -313,7 +313,7 @@ def jobStatus(jobId, host=None):
         return {"Q": "queued", "H": "queued", "R": "running",
                 "E": "running", "F": "done", "C": "done"}.get(state, "unknown")
     if kind == "slurm":
-        out, code = sshRun(f"squeue -h -j {jobId} -o %T 2>/dev/null",
+        out, code = sshRun(f"squeue -h -j {jobID} -o %T 2>/dev/null",
                            host=host, timeoutSeconds=15, quiet=True)
         if code != 0:
             return "unknown"
@@ -325,19 +325,19 @@ def jobStatus(jobId, host=None):
     return "unknown"
 
 
-def waitJob(jobId, host=None, pollSeconds=10, maxSeconds=1800):
+def waitJob(jobID, host=None, pollSeconds=10, maxSeconds=1800):
     """Block (politely) until a job leaves the queue, or timeout. Returns final status."""
     start = time.time()
     lastState = ""
     while time.time() - start < maxSeconds:
-        state = jobStatus(jobId, host=host)
+        state = jobStatus(jobID, host=host)
         if state != lastState:
-            showNote(f"job {jobId}: <b>{state}</b>", kind="info")
+            showNote(f"job {jobID}: <b>{state}</b>", kind="info")
             lastState = state
         if state == "done":
             return state
         time.sleep(pollSeconds)
-    showNote(f"job {jobId} still not done after {maxSeconds}s; last state: {lastState}",
+    showNote(f"job {jobID} still not done after {maxSeconds}s; last state: {lastState}",
              kind="warn")
     return lastState or "unknown"
 
