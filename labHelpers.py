@@ -888,7 +888,7 @@ def renderField(source, outPath, title=None, cmap="viridis", vmin=None, vmax=Non
 
 
 def plotScaling(csvPath, kind="strong", outPath=None, baselineCol="threads",
-                timeCol="wall_s", ideal=True, title=None):
+                timeCol="wall_s", ideal=True, title=None, variantFilter=None):
     """One-line publication-safe HPC plot from a timings CSV.
 
     kind        'strong' (speedup vs N) | 'weak' (efficiency vs N) |
@@ -897,6 +897,9 @@ def plotScaling(csvPath, kind="strong", outPath=None, baselineCol="threads",
     csvPath     e.g. lab03/outputs/perf/timings.csv with columns
                 <baselineCol>, <timeCol> (and optional 'variant' to group lines).
     outPath     defaults to <csvPath dir>/../figures/<kind>.pdf.
+    variantFilter  optional string or list; keep only rows whose 'variant' column
+                matches. When a CSV holds several parallel variants (serial, openmp,
+                mpi, hybrid) but you want one figure per variant, pass 'openmp' etc.
     Returns the paths saveFigure() wrote.
     """
     ensureDependencies(["matplotlib", "pandas"])
@@ -905,6 +908,9 @@ def plotScaling(csvPath, kind="strong", outPath=None, baselineCol="threads",
 
     csvPath = Path(csvPath).expanduser()
     df = pd.read_csv(csvPath)
+    if variantFilter is not None and "variant" in df.columns:
+        keep = [variantFilter] if isinstance(variantFilter, str) else list(variantFilter)
+        df = df[df["variant"].isin(keep)].copy()
     outPath = Path(outPath).expanduser() if outPath else (csvPath.parent.parent / "figures" / f"{kind}")
 
     fig, ax = plt.subplots()
