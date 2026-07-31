@@ -475,6 +475,17 @@ def commandSucceeds(command, timeoutSeconds=30):
     return probe
 
 
+def commandOutputContains(command, needle, timeoutSeconds=30):
+    """Probe that runs a shell command and checks its output for a substring.
+    Useful for `binary && grep`-style verification without shelling twice."""
+    def probe():
+        out, _ = runShell(command, timeoutSeconds=timeoutSeconds)
+        found = needle in out
+        preview = out.strip().splitlines()[0][:80] if out.strip() else "(no output)"
+        return found, f"{'found' if found else 'missing'} {needle!r}: {preview}"
+    return probe
+
+
 def commandOnPath(commandName):
     def probe():
         location = shutil.which(commandName)
