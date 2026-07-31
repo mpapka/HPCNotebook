@@ -277,6 +277,42 @@ def scheduler(host=None):
 # Job submission - one call, two schedulers
 # --------------------------------------------------------------------------
 
+def pbsHeader(name, project, queue="debug", walltime="00:10:00",
+              select="1:system=crux", filesystems="home:eagle",
+              outPath=None, joinErrOut=True):
+    """Build the top-of-file `#PBS` directive block for a Crux/Polaris job.
+
+    Returns a string ending in a newline; concatenate your job body after it.
+    Every directive here corresponds to a documented ALCF requirement (see
+    https://docs.alcf.anl.gov/crux/queueing-and-running-jobs/running-jobs/).
+
+    name          job name (any string)
+    project       ALCF allocation, e.g. 'UIC-CS455-Sp2027'
+    queue         'debug' (default; 10min max) or 'prod'
+    walltime      HH:MM:SS
+    select        node reservation string. Defaults to '1:system=crux'; for
+                  multi-node MPI use '4:system=crux' etc.
+    filesystems   'home', 'eagle', 'home:eagle' - ALCF requires this to be set
+    outPath       where to write stdout+stderr (defaults to $PBS_O_WORKDIR/job.out)
+    joinErrOut    True adds `#PBS -j oe` (recommended)
+    """
+    lines = [
+        "#!/bin/bash",
+        f"#PBS -N {name}",
+        f"#PBS -A {project}",
+        f"#PBS -q {queue}",
+        f"#PBS -l select={select}",
+        f"#PBS -l walltime={walltime}",
+        f"#PBS -l filesystems={filesystems}",
+    ]
+    if joinErrOut:
+        lines.append("#PBS -j oe")
+    if outPath:
+        lines.append(f"#PBS -o {outPath}")
+    lines.append("")   # trailing newline before the body
+    return "\n".join(lines) + "\n"
+
+
 def submitJob(scriptPath, host=None, extraArgs=None, timeoutSeconds=30):
     """Submit a batch script that already lives on the cluster.
 
