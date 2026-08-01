@@ -3,7 +3,7 @@
 Hands-on lab series for **CS 455 — Introduction to High Performance Computing** at UIC.
 Each lab is a Jupyter notebook that teaches a slice of the HPC stack — logging in, batch
 scheduling, serial baselines, OpenMP, MPI, hybrid parallelism, GPUs, scaling studies,
-libraries, and parallel I/O — by having students *build and run real code on a real
+and paper-style writeups — by having students *build and run real code on a real
 supercomputer* (**ALCF Crux** primary, **ALCF Polaris** for the GPU labs, Slurm callouts
 throughout for other sites).
 
@@ -66,25 +66,26 @@ Notes:
 The numbered notebooks **`lab00` … `lab13`** are the 14-week course sequence and are
 meant to be done in order. They share a **spine**: a 2-D heat-equation stencil that
 starts life as a serial C program in lab01 and gets progressively parallelized —
-OpenMP → MPI → hybrid → GPU → multi-GPU → many-node → parallel I/O — so each lab
-produces a number that plugs into a class-wide scaling leaderboard.
+OpenMP → MPI → hybrid → GPU → multi-GPU → scaling study — so each lab produces a
+number that plugs into a class-wide scaling leaderboard, and the final two labs turn
+that arc into a paper-style writeup.
 
 | Wk | Lab | Focus |
 |---|---|---|
 | 1 | `lab00GettingOnTheMachine` | Accounts, ssh (MobilePASS+ multiplexed), `module`, filesystems, first `qsub` on Crux |
 | 2 | `lab01SerialBaseline` | 2-D heat stencil in serial C — the "before" number every later lab beats |
-| 3 | `lab02PerformanceMeasurement` | Wall vs CPU time, `perf stat`, roofline intuition, why one number lies |
-| 4 | `lab03OpenMPFundamentals` | `#pragma omp parallel for`, reductions, first speedup on the baseline |
-| 5 | `lab04OpenMPPitfalls` | False sharing, load imbalance, thread affinity, NUMA |
-| 6 | `lab05MPIFundamentals` | `MPI_Init`, point-to-point, collectives, first multi-node job |
-| 7 | `lab06MPIDomainDecomposition` | Split the stencil across ranks, halo exchange, verify before speed |
-| 8 | `lab07HybridMPIOpenMP` | Ranks-per-node × threads-per-rank sweep on Crux |
-| 9 | `lab08GPUIntro` | OpenMP `target` offload — port one kernel from lab06 |
-| 10 | `lab09GPUOptimization` | CUDA, memory hierarchy, coalescing, occupancy, streams |
-| 11 | `lab10MultiGPUOneNode` | 4-GPU Polaris node via MPI+CUDA |
-| 12 | `lab11ScalingStudy` | Strong + weak scaling out to many nodes; publication-quality figures |
-| 13 | `lab12Libraries` | When to write vs link — BLAS / LAPACK / FFTW / cuBLAS |
-| 14 | `lab13IOAndCheckpointing` | Parallel HDF5, why I/O eats scaling, checkpoint / restart |
+| 3 | `lab02PerformanceMeasurement` | Wall vs CPU time, `perf stat`, RAPL energy, measured roofline for Crux, controlled A/B |
+| 4 | `lab03OpenMP` | `#pragma omp parallel for`, first thread-count sweep, correctness vs serial |
+| 5 | `lab04OpenMPPitfalls` | Data races (TSan), false sharing, NUMA / first-touch, `static` vs `dynamic` scheduling |
+| 6 | `lab05MPIPrimer` | `MPI_Init`, point-to-point (`Send` / `Recv` / `Sendrecv`), collectives, non-blocking pattern |
+| 7 | `lab06MPIHeat2D` | 2-D domain decomposition, halo exchange, `MPI_Cart_create`, strong scaling across nodes |
+| 8 | `lab07HybridMPIOpenMP` | Ranks-per-node × threads-per-rank sweep on Crux; why one rank per NUMA usually wins |
+| 9 | `lab08GPUOffload` | Move to Polaris; OpenMP `target teams distribute parallel for` on an A100 |
+| 10 | `lab09CUDA` | Write the kernel by hand — `nvcc`, `<<<grid,block>>>`, block-size tuning |
+| 11 | `lab10MultiGPU` | MPI + CUDA on 4 A100s / node, `cudaSetDevice(localRank)`, CUDA-aware MPI |
+| 12 | `lab11ScalingStudy` | Pick one variant, run strong + weak scaling, plot with `plotScaling` |
+| 13 | `lab12FinalProject` | Extend the code in one direction: new physics, implicit solve, AMR, or a new platform |
+| 14 | `lab13FinalWriteup` | Turn a semester of code into a six-page paper (ACM template, LaTeX skeleton provided) |
 
 Week 15 (final week) has no new lab — final exam / project defenses.
 
@@ -92,41 +93,27 @@ Week 15 (final week) has no new lab — final exam / project defenses.
 
 Four optional on-ramps come before the numbered sequence — do any subset, in any order,
 or skip them. **AA**, **BB**, and **CC** are independent; **DD** is strongly recommended
-because every lab from lab01 on relies on its plotting primitives.
+because every lab from lab02 on relies on its plotting primitives.
 
-- **AA** `labAALinuxAndSSH` — shell basics, ssh keys, first cluster login
-- **BB** `labBBCToolchain` — `gcc` / `clang`, `make`, `gdb`, useful flags, first-hour C hygiene
+- **AA** `labAALinuxAndSSH` — shell basics, files / permissions / scripts, ssh key auth
+  hands-on against `localhost` (uses an isolated lab-specific key so an existing
+  passphrase-protected `~/.ssh/id_ed25519` doesn't get in the way)
+- **BB** `labBBCToolchain` — `gcc` four-stage build, `-Wall -Wextra -Werror`, a real
+  Makefile with dependency tracking, `gdb` on a live segfault, AddressSanitizer on a
+  use-after-free
 - **CC** `labCCNumericsForHPC` — floats vs doubles, ULPs, catastrophic cancellation,
-  `-ffast-math` traps, timer resolution, reduction-order reproducibility. Strongly
-  recommended before lab 02 (which builds on Part 4 and Part 5). Runs entirely on
-  the Hub — no cluster round-trips.
-- **DD** `labDDAnalysisAndPlotting` — pandas + matplotlib to turn any lab's `.csv`
-  outputs into speedup / efficiency / roofline plots; uses `renderField` and
-  `plotScaling` from `labHelpers.py`
-
-### Grad-student capstone (after lab13)
-
-- **EE** `labEENBodyBarnesHut` — the same parallelization arc as the spine, but on
-  n-body gravitation with a Barnes-Hut tree. Reuses everything you built from lab01
-  through lab11.
-
-## Parallel-track projects
-
-The lab sequence intentionally leaves the three individual projects room to breathe —
-labs teach, projects apply.
-
-| Weeks | Project | Feeds from | Notes |
-|---|---|---|---|
-| 2-3 | Lego decomposition (group) | Precedes lab03 | Pure decomposition thinking before any parallel code |
-| 4-6 | OpenMP project (individual) | lab03, lab04 | Due before lab05 |
-| 7-10 | MPI project (individual) | lab05, lab06, lab07 | Due before lab08 |
+  `-ffast-math` traps, timer resolution, reduction-order reproducibility. Runs entirely
+  on the Hub — no cluster round-trips.
+- **DD** `labDDAnalysisAndPlotting` — pandas + matplotlib to turn any lab's `timings.csv`
+  into speedup / efficiency / roofline plots via `renderField`, `plotScaling`,
+  `applyHouseStyle`, `saveFigure` from `labHelpers.py`
 
 ## The runtime these labs target
 
 The primary cluster is **ALCF Crux** (PBS Pro, CPU-only — HPE Cray EX with AMD EPYC).
 Labs 00-07 run entirely on Crux. Labs **08-10 switch to Polaris** (also PBS Pro, NVIDIA
-A100 GPUs) — that is where GPU work happens. Labs 11-13 return to Crux for scaling
-studies, libraries, and parallel I/O.
+A100 GPUs) — that is where GPU work happens. Labs 11-13 return to Crux for the scaling
+study, final project, and writeup.
 
 The switch between clusters is one line in each lab's `setupLab()` call
 (`host='crux'` vs `host='polaris'`). Everything else — the ssh multiplexing you set up
@@ -146,21 +133,24 @@ university clusters) because `labHelpers.py` probes the remote scheduler and pic
   big and fast; every lab writes into `$HPC_SCRATCH/<labName>/` and pulls only the
   small stuff (CSVs, final figures) back to the Hub via `sshGet`. Every job script
   **must** include `#PBS -l filesystems=home:eagle` — the scheduler rejects jobs
-  that don't declare filesystems up front.
+  that don't declare filesystems up front. The `pbsHeader()` helper in
+  `labHelpers.py` sets this by default.
 - **Authentication** — ALCF uses **MobilePASS+**. Lab 00 sets up ssh connection
   multiplexing so students prompt for a passcode once every ~8 hours, not on every
   cell. Every later lab assumes that channel is up.
 - **Visualization** — small runs render on the Hub (matplotlib in the notebook, so
   students see the code); big runs render on the compute node and we scp the PNGs
   back. `renderField(mode='auto')` picks based on size and explains which mode it
-  chose — that IS the in-situ visualization lesson lab11 leans on.
+  chose.
 
 ## Layout
 
 - `lab00` … `lab13` — the labs, in course order.
 - `labAALinuxAndSSH`, `labBBCToolchain`, `labCCNumericsForHPC`, `labDDAnalysisAndPlotting`
   — optional on-ramps.
-- `labEENBodyBarnesHut` — grad-student capstone.
 - `labHelpers.py` — shared toolkit imported by every lab: `setupLab`, `preflight` /
-  `checkpoint` graded checks, ssh + scheduler wrappers, `renderField` /
-  `plotScaling` / `applyHouseStyle` / `saveFigure`.
+  `checkpoint` graded checks, ssh + scheduler wrappers (`sshRun`, `sshPut`, `sshGet`,
+  `submitJob`, `waitJob`, `pbsHeader`), analysis + plotting (`renderField`,
+  `plotScaling`, `applyHouseStyle`, `saveFigure`), end-of-lab scorecard (`labSummary`)
+  and one-minute feedback widget (`feedback`).
+- `publish.sh` — the weekly-rollout script (see *Releasing labs* above).
